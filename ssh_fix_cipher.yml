@@ -1,0 +1,79 @@
+---
+- name: SSH Auto Fix Sample
+  hosts: soe
+  become: true
+
+  tasks:
+
+  - name: Backup sshd_config file
+    command: cp -rf /etc/ssh/sshd_config /tmp/sshd_config.bak
+    tags: test
+
+  - name: Get SSH Cipher Current Setting
+    command: grep -w '^[ \t]*Ciphers' /etc/ssh/sshd_config
+    register: current_ssh_cipher
+    ignore_errors: True
+    tags: test
+
+  - name: Fix SSH Cipher Exists Config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^[ \t]*Ciphers'
+      line: Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aaaa
+      create: no
+    when: current_ssh_cipher.stdout |length > 0
+    notify: Restart Service
+    tags: test
+
+  - name: Append SSH Cipher Config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      line: Ciphers aes128-ctr,aes192-ctr,aes256-ctr
+    when: current_ssh_cipher.stdout |length == 0
+    notify: Restart Service
+    tags: test
+
+  - name: Check SSH Config Correct
+    command: sshd -t
+    ignore_errors: True
+    changed_when: True
+    register: command_result
+    tags: test
+
+  - name: Restore SSH Config
+    command: cp -rf /tmp/sshd_config.bak /etc/ssh/sshd_config
+    when: command_result.rc != 0
+    tags: test
+    notify: 
+      - Restart Service
+      - Throw Fail
+
+  - name: After Show Variable Content
+    debug:
+      msg: "current_ssh_cipher={{current_ssh_cipher.stdout}} command_result={{command_result.rc}}"
+    tags: test
+
+  handlers:
+  - name: Throw Fail
+    fail: 
+      msg: "Fix Config Fail"
+    when: True
+
+  - name: Restart Service
+    systemd:
+      name: sshd
+      state: restarted
+      daemon_reload: yes
+
+
+- name: SSH Remote Connect Check
+  hosts: soe_test
+  
+    
+
+  handlers:
+  - name: Final handlers
+    debug:
+      msg: "Hello World!! for My handler"
+
+
