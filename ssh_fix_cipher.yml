@@ -7,13 +7,17 @@
 
   - name: Backup sshd_config file
     command: cp -rf /etc/ssh/sshd_config /tmp/sshd_config.bak
-    tags: test
+    tags: 
+      - ssh_cipher_fix
+      - ssh_kex_fix
+      - ssh_mac_fix
 
   - name: Get SSH Cipher Current Setting
     command: grep -w '^[ \t]*Ciphers' /etc/ssh/sshd_config
     register: current_ssh_cipher
     ignore_errors: True
-    tags: test
+    tags:
+      - ssh_cipher_fix
 
   - name: Fix SSH Cipher Exists Config
     lineinfile:
@@ -23,27 +27,37 @@
       create: no
     when: current_ssh_cipher.stdout |length > 0
     notify: Restart Service
-    tags: test
+    tags:
+      - ssh_cipher_fix
 
   - name: Append SSH Cipher Config
     lineinfile:
       path: /etc/ssh/sshd_config
-      line: Ciphers aes128-ctr,aes192-ctr,aes256-ctr
+      line: Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aaaa
     when: current_ssh_cipher.stdout |length == 0
     notify: Restart Service
-    tags: test
+    tags:
+      - ssh_cipher_fix
+
 
   - name: Check SSH Config Correct
     command: sshd -t
     ignore_errors: True
     changed_when: True
     register: command_result
-    tags: test
+    tags:
+      - ssh_cipher_fix
+      - ssh_kex_fix
+      - ssh_mac_fix
+                        
 
   - name: Restore SSH Config
     command: cp -rf /tmp/sshd_config.bak /etc/ssh/sshd_config
     when: command_result.rc != 0
-    tags: test
+    tags:
+      - ssh_cipher_fix
+      - ssh_kex_fix
+      - ssh_mac_fix
     notify: 
       - Restart Service
       - Throw Fail
@@ -51,13 +65,12 @@
   - name: After Show Variable Content
     debug:
       msg: "current_ssh_cipher={{current_ssh_cipher.stdout}} command_result={{command_result.rc}}"
-    tags: test
+    tags:
+      - ssh_cipher_fix
+      - ssh_kex_fix
+      - ssh_mac_fix
 
   handlers:
-  - name: Throw Fail
-    fail: 
-      msg: "Fix Config Fail"
-    when: True
 
   - name: Restart Service
     systemd:
@@ -65,11 +78,24 @@
       state: restarted
       daemon_reload: yes
 
+  - name: Throw Fail
+    fail:
+      msg: "Fix Config Fail"
+    when: True
+
+  
 
 - name: SSH Remote Connect Check
-  hosts: soe_test
-  
-    
+  hosts: test_soe
+  tasks:
+
+  - name: After Show Variable Content RRRRR
+    debug:
+      msg: "current_ssh_cipher={{current_ssh_cipher.stdout}} command_result={{command_result.rc}}  RRR"
+    tags:
+      - ssh_cipher_fix
+      - ssh_kex_fix
+      - ssh_mac_fix
 
   handlers:
   - name: Final handlers
