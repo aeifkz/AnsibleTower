@@ -1,0 +1,60 @@
+- name: Hello World Sample
+  hosts: test_soe
+  gather_facts: True
+  vars:
+    test:
+      '192.168.229.161' : ['192.168.229.128','192.168.229.161']
+      #'192.168.229.161' : ['192.168.229.128']
+      '192.168.229.128' : ['192.168.229.161','192.168.229.128']
+
+
+  tasks:
+
+    - name: get check ssh server ip
+      set_fact:
+         check_iplist: "{{test[ansible_default_ipv4.address]}}"
+
+    - name: show ip
+      debug:
+        msg: "{{item}}  test {{item}} -> {{ansible_default_ipv4.address}}"
+      loop: "{{check_iplist}}"
+
+
+    - name: Test for SSH Connection
+      shell: ssh -o "StrictHostKeyChecking=no" -o "BatchMode=yes"  "{{ansible_default_ipv4.address}}" exit
+      delegate_to: "{{item}}"
+      ignore_errors: True
+      register: ssh_test_result
+      loop: "{{test[ansible_default_ipv4.address]}}"
+
+    - name: show Test for user1
+      debug:
+        msg: "ssh_test_result = {{ssh_test_result['results']}}"
+
+
+- name: SSH local test
+  hosts: all
+  become: true
+  gather_facts: True
+  tasks:
+    - name: Hello Message
+      debug:
+        #msg: "{{ hostvars[ groups['test_soe'][0] ]  }} "
+        msg: "{{item}} \n ------------------------------------ \n  {{ hostvars[item] }}\n\n"
+      loop: "{{ groups['test_soe'] }} "
+      delegate_to: local
+
+
+    - name: Add Host
+      add_host:
+        hostname: '192.168.229.161'
+        groups: just_created
+
+
+
+- name: Another Group
+  hosts: just_created
+  tasks:
+    - name: Hello Add Group
+      debug:
+        msg: "Oh YA"

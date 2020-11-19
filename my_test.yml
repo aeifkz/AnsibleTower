@@ -1,6 +1,39 @@
 - name: Hello World Sample
+  hosts: test_soe
+  gather_facts: True
+  vars:
+    test:
+      '192.168.229.161' : ['192.168.229.128','192.168.229.161']
+      '192.168.229.128' : ['192.168.229.161','192.168.229.128']
+
+  tasks:
+
+    - name: Test for SSH Connection
+      shell: echo "{{test[ansible_default_ipv4.address]}} test {{ansible_default_ipv4.address}} success" > /tmp/delegate_{{item}}
+      delegate_to: "{{item}}"
+      register: delegate_result
+      loop: "{{test[ansible_default_ipv4.address]}}"
+
+    - name: Set Fact
+      set_fact: 
+        one_fact: "{{test[ansible_default_ipv4.address]}}"
+
+    - name: Hello Message
+      debug:
+        msg : "This is a simple test."
+        #msg: "Hello World!! I am {{ansible_default_ipv4.address}}. I need to process item={{test[ansible_default_ipv4.address]}} fact={{one_fact}} "
+
+
+- name: SSH local test
   hosts: all
+  become: true
   tasks:
     - name: Hello Message
       debug:
-        msg: "Hello World!! for My test"
+        #msg: "{{ hostvars[ groups['soe'][0]]['one_fact'] }} "
+        msg: "{{ hostvars[item]['delegate_result'] }}"
+      loop: "{{ groups['soe'] }} "
+      delegate_to: local
+        
+
+

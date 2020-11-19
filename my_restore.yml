@@ -1,0 +1,90 @@
+- name: Hello World Sample
+  hosts: test_soe
+  gather_facts: True
+  vars:
+    test:
+      '192.168.229.161' : ['192.168.229.128','192.168.229.161']
+      #'192.168.229.161' : ['192.168.229.128']
+      '192.168.229.128' : ['192.168.229.161','192.168.229.128']
+
+  tasks:
+    - name: get check ssh server ip
+      set_fact:
+         check_iplist: "{{test[ansible_default_ipv4.address]}}"
+
+    - name: show ip
+      debug:
+        msg: "{{item}}  test {{item}} -> {{ansible_default_ipv4.address}}"
+      loop: "{{check_iplist}}"
+
+    - name: Test for SSH Connection
+      shell: ssh -o "StrictHostKeyChecking=no" -o "BatchMode=yes"  "{{ansible_default_ipv4.address}}" exit
+      #shell: echo 123
+      delegate_to: "{{item}}"
+      ignore_errors: True
+      register: ssh_test_result
+      loop: "{{test[ansible_default_ipv4.address]}}"
+
+    - name: show Test for user1
+      debug:
+        msg: "ssh_test_result = {{ssh_test_result['results']}}"
+
+- name: SSH local Parse Test
+  hosts: all
+  become: true
+  gather_facts: False
+  tasks:
+
+    - name: Initialize an empty list for our strings
+      set_fact:
+        result_list: []
+        filter_list: []
+      delegate_to: local
+
+    - name: set result variable
+      set_fact: 
+        result_list: "{{ result_list + [ { 'ip' : item , 'results': hostvars[item]['ssh_test_result']['results'] } ] }}"
+      loop: "{{ groups['test_soe'] }}"
+      delegate_to: local
+
+    - name: filter result variable
+      debug:
+        #msg: "{{item.name}}"
+        msg: "get ip={{item.ip}}  results={{item.results | map('regex_replace','rc') | flatten  }} "
+      loop: "{{result_list}}"
+      delegate_to: local
+
+    - name: 
+      debug:
+        #msg: "{{ hostvars[ groups['test_soe'][0] ] }} "
+        #msg: "{{item}} = {{ hostvars[item]['ssh_test_result'] }}"
+        #msg: "{{ item.0 }}/{{ item.1 }}"
+        msg: "{{result_list}}"
+      #loop: "{{ groups['test_soe'] }}"
+      delegate_to: local
+
+    - name: Add Host
+      add_host:
+        #hostname: '{{item}}'
+        hostname: '192.168.229.161'
+        groups: just_created
+      #loop: "{{ groups['test_soe'] }}"
+      delegate_to: local
+
+
+- name: Another Group
+  hosts: just_created
+  gather_facts: False
+  tasks:
+    - name: Hello Add Group
+      debug:
+        msg: "Oh YA"
+      tags: XXXX
+
+    - name: Cp a file
+      copy:
+        src: test.txt
+        dest: /tmp/new_group.txt
+      tags: XXXX
+
+
