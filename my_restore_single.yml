@@ -1,0 +1,64 @@
+- name: Hello World Sample
+  hosts: test_soe
+  gather_facts: True
+  become: true
+  vars:
+    test:
+      '192.168.229.161' : ['192.168.229.128','192.168.229.161']
+      #'192.168.229.161' : ['192.168.229.128']
+      '192.168.229.128' : ['192.168.229.161','192.168.229.128']
+
+  tasks:
+    - name: get check ssh server ip
+      set_fact:
+         check_iplist: "{{test[ansible_default_ipv4.address]}}"
+
+    - name: show ip
+      debug:
+        msg: "{{item}}  test {{item}} -> {{ansible_default_ipv4.address}}"
+      loop: "{{check_iplist}}"
+
+    - name: Test for SSH Connection
+      shell: ssh -o "StrictHostKeyChecking=no" -o "BatchMode=yes"  "{{ansible_default_ipv4.address}}" exit
+      #shell: echo 123
+      delegate_to: "{{item}}"
+      ignore_errors: True
+      register: ssh_test_result
+      loop: "{{test[ansible_default_ipv4.address]}}"
+
+    - name: show SSH Connection Test 
+      debug:
+        msg: "ssh_test_result = {{ssh_test_result['results']}}"
+
+    - name: check SSH Connection Test
+      debug:
+        msg: "item = {{item['rc']}}"
+      when: item['rc'] != 0
+      loop: "{{ssh_test_result['results']}}"
+
+
+    - name: restore SSH Config when fail
+      #shell: cp -rf /tmp/sshd_config.bak /etc/ssh/sshd_config 
+      shell: touch /tmp/runing____
+      when: item['rc'] != 0
+      notify: 
+        - Restart Service
+        - Throw Fail
+      loop: "{{ssh_test_result['results']}}"
+
+
+  handlers:
+
+    - name: Restart Service
+      systemd:
+        name: sshd
+        state: restarted
+        daemon_reload: yes
+
+    - name: Throw Fail
+      fail:
+        msg: "Check SSH Connection Fail"
+      when: True
+
+
+    

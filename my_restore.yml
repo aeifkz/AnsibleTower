@@ -29,8 +29,10 @@
       debug:
         msg: "ssh_test_result = {{ssh_test_result['results']}}"
 
+
+
 - name: SSH local Parse Test
-  hosts: all
+  hosts: local
   become: true
   gather_facts: False
   tasks:
@@ -39,20 +41,18 @@
       set_fact:
         result_list: []
         filter_list: []
-      delegate_to: local
 
     - name: set result variable
       set_fact: 
         result_list: "{{ result_list + [ { 'ip' : item , 'results': hostvars[item]['ssh_test_result']['results'] } ] }}"
       loop: "{{ groups['test_soe'] }}"
-      delegate_to: local
 
     - name: filter result variable
       debug:
         #msg: "{{item.name}}"
-        msg: "get ip={{item.ip}}  results={{item.results | map('regex_replace','rc') | flatten  }} "
+        msg: "get ip={{item.ip}}  results={{item.results | flatten  }} "
       loop: "{{result_list}}"
-      delegate_to: local
+
 
     - name: 
       debug:
@@ -61,7 +61,7 @@
         #msg: "{{ item.0 }}/{{ item.1 }}"
         msg: "{{result_list}}"
       #loop: "{{ groups['test_soe'] }}"
-      delegate_to: local
+      tags: XXXXX
 
     - name: Add Host
       add_host:
@@ -69,7 +69,6 @@
         hostname: '192.168.229.161'
         groups: just_created
       #loop: "{{ groups['test_soe'] }}"
-      delegate_to: local
 
 
 - name: Another Group
