@@ -2,6 +2,7 @@
 - name: SSH Auto Fix Sample
   hosts: soe
   become: true
+  gather_facts: False
 
   tasks:
 
@@ -126,13 +127,6 @@
       - Restart Service
       - Throw Fail
 
-  - name: After Show Variable Content
-    debug:
-      msg: "current_ssh_cipher={{current_ssh_cipher.stdout}} command_result={{command_result.rc}}"
-    tags:
-      - ssh_cipher_fix
-      - ssh_kex_fix
-      - ssh_mac_fix
 
   handlers:
 
