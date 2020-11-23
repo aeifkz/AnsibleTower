@@ -56,7 +56,7 @@
     lineinfile:
       path: /etc/ssh/sshd_config
       regexp: '^[ \t]*KexAlgorithms'
-      line: KexAlgorithms diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org,gss-gex-sha1-,gss-group1-sha1-,gss-group14-sha1-
+      line: kexalgorithms diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org 
       create: no
     when: current_ssh_kex.stdout |length > 0
     notify: Restart Service
@@ -66,11 +66,39 @@
   - name: Append SSH Kex Config
     lineinfile:
       path: /etc/ssh/sshd_config
-      line: KexAlgorithms diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org,gss-gex-sha1-,gss-group1-sha1-,gss-group14-sha1-
+      line: kexalgorithms diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org 
     when: current_ssh_kex.stdout |length == 0
     notify: Restart Service
     tags:
       - ssh_kex_fix
+      
+
+  - name: Get SSH Kex Current Setting in /etc/ssh/ssh_config
+    command: grep -w '^[ \t]*KexAlgorithms' /etc/ssh/ssh_config
+    register: current_ssh_kex
+    ignore_errors: True
+    tags:
+      - ssh_kex_fix
+
+  - name: Fix SSH Kex Exists Config in /etc/ssh/ssh_config
+    lineinfile:
+      path: /etc/ssh/ssh_config
+      regexp: '^[ \t]*KexAlgorithms'
+      line: KexAlgorithms diffie-hellman-group14-sha1,,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org,gss-gex-sha1-,gss-group1-sha1-,gss-group14-sha1-
+      create: no
+    when: current_ssh_kex.stdout |length > 0
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix
+
+  - name: Append SSH Kex Config in /etc/ssh/ssh_config
+    lineinfile:
+      path: /etc/ssh/ssh_config
+      line: KexAlgorithms diffie-hellman-group14-sha1,,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org,gss-gex-sha1-,gss-group1-sha1-,gss-group14-sha1-
+    when: current_ssh_kex.stdout |length == 0
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix      
  
  
   # SSH MAC Algorithm
