@@ -46,7 +46,7 @@
   # SSH KexAlgorithm
   #-------------------------------------------------------------------------
   - name: Get SSH Kex Current Setting
-    command: grep -w '^[ \t]*KexAlgorithms' /etc/ssh/sshd_config
+    command: grep -w '^[ \t]*\(KexAlgorithms\|kexalgorithms\)' /etc/ssh/sshd_config
     register: current_ssh_kex
     ignore_errors: True
     tags:
@@ -62,6 +62,19 @@
     notify: Restart Service
     tags:
       - ssh_kex_fix
+
+  - name: Fix SSH Kex Exists Config1
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^[ \t]*kexalgorithms'
+      line: " "    
+      create: no
+    when: current_ssh_kex.stdout |length > 0
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix
+
+
 
   - name: Append SSH Kex Config
     lineinfile:
@@ -130,7 +143,6 @@
     tags:
       - ssh_mac_fix
 
-     
 
 
   - name: Check SSH Config Correct
