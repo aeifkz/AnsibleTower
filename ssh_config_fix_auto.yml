@@ -1,0 +1,202 @@
+---
+
+- name: SSH Create Host Sample
+  hosts: local
+  gather_facts: False
+
+  tasks:
+
+  - name: include IP list
+    include_vars: var.yml
+
+  - name: Add host to group soe_test
+    add_host:
+      name: '{{item}}'
+      groups: soe_test
+    loop: "{{app_th}}"
+
+
+
+- name: SSH Auto Fix Sample
+  hosts: soe_test
+  become: true
+  gather_facts: False
+
+  tasks:
+
+  - name: Backup sshd_config file
+    command: cp -rf /etc/ssh/sshd_config /tmp/sshd_config.bak
+    tags: 
+      - ssh_cipher_fix
+      - ssh_kex_fix
+      - ssh_mac_fix
+
+  # SSH Cipher 
+  #-------------------------------------------------------------------------
+  - name: Get SSH Cipher Current Setting
+    command: grep -w '^[ \t]*Ciphers' /etc/ssh/sshd_config
+    register: current_ssh_cipher
+    ignore_errors: True
+    tags:
+      - ssh_cipher_fix
+
+  - name: Fix SSH Cipher Exists Config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^[ \t]*Ciphers'
+      line: Ciphers chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
+      create: no
+    when: current_ssh_cipher.stdout |length > 0
+    notify: Restart Service
+    tags:
+      - ssh_cipher_fix
+
+  - name: Append SSH Cipher Config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      line: Ciphers chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
+    when: current_ssh_cipher.stdout |length == 0
+    notify: Restart Service
+    tags:
+      - ssh_cipher_fix
+
+
+  # SSH KexAlgorithm
+  #-------------------------------------------------------------------------
+  - name: Get SSH Kex Current Setting
+    command: grep -w '^[ \t]*\(KexAlgorithms\|kexalgorithms\)' /etc/ssh/sshd_config
+    register: current_ssh_kex
+    ignore_errors: True
+    tags:
+      - ssh_kex_fix
+
+  - name: Fix SSH Kex Exists Config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^[ \t]*KexAlgorithms'
+      line: KexAlgorithms diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org 
+      create: no
+    when: current_ssh_kex.stdout |length > 0
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix
+
+  - name: Fix SSH Kex Exists Config1
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^[ \t]*kexalgorithms'
+      line: " "    
+      create: no
+    when: current_ssh_kex.stdout |length > 0
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix
+
+
+
+  - name: Append SSH Kex Config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      line: KexAlgorithms diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org 
+    when: current_ssh_kex.stdout |length == 0
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix
+      
+
+  - name: Get SSH Kex Current Setting in /etc/ssh/ssh_config
+    command: grep -w '^[ \t]*KexAlgorithms' /etc/ssh/ssh_config
+    register: current_ssh_kex
+    ignore_errors: True
+    tags:
+      - ssh_kex_fix
+
+  - name: Fix SSH Kex Exists Config in /etc/ssh/ssh_config
+    lineinfile:
+      path: /etc/ssh/ssh_config
+      regexp: '^[ \t]*KexAlgorithms'
+      line: KexAlgorithms diffie-hellman-group14-sha1,,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org,gss-gex-sha1-,gss-group1-sha1-,gss-group14-sha1-
+      create: no
+    when: current_ssh_kex.stdout |length > 0
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix
+
+  - name: Append SSH Kex Config in /etc/ssh/ssh_config
+    lineinfile:
+      path: /etc/ssh/ssh_config
+      line: KexAlgorithms diffie-hellman-group14-sha1,,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org,gss-gex-sha1-,gss-group1-sha1-,gss-group14-sha1-
+    when: current_ssh_kex.stdout |length == 0
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix      
+ 
+ 
+  # SSH MAC Algorithm
+  #-------------------------------------------------------------------------
+  - name: Get SSH MAC Current Setting
+    command: grep -w '^[ \t]*MACs' /etc/ssh/sshd_config
+    register: current_ssh_macs
+    ignore_errors: True
+    tags:
+      - ssh_mac_fix
+
+  - name: Fix SSH MACs Exists Config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^[ \t]*MACs'
+      line: MACs hmac-sha1-etm@openssh.com,umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512
+      create: no
+    when: current_ssh_macs.stdout |length > 0
+    notify: Restart Service
+    tags:
+      - ssh_mac_fix
+
+  - name: Append SSH Kex Config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      line: MACs hmac-sha1-etm@openssh.com,umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512
+    when: current_ssh_macs.stdout |length == 0
+    notify: Restart Service
+    tags:
+      - ssh_mac_fix
+
+
+
+  - name: Check SSH Config Correct
+    command: sshd -t
+    ignore_errors: True
+    changed_when: True
+    register: command_result
+    tags:
+      - ssh_cipher_fix
+      - ssh_kex_fix
+      - ssh_mac_fix
+                        
+
+  - name: Restore SSH Config
+    command: cp -rf /tmp/sshd_config.bak /etc/ssh/sshd_config
+    when: command_result.rc != 0
+    tags:
+      - ssh_cipher_fix
+      - ssh_kex_fix
+      - ssh_mac_fix
+    notify: 
+      - Restart Service
+      - Throw Fail
+
+
+  handlers:
+
+  - name: Restart Service
+    systemd:
+      name: sshd
+      state: restarted
+      daemon_reload: yes
+
+  - name: Throw Fail
+    fail:
+      msg: "Fix Config Fail"
+    when: True
+
+  
