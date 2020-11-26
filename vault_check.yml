@@ -1,0 +1,20 @@
+- name: Test SSH Connection
+  hosts: local
+  gather_facts: False
+
+  vars_files:
+    - test.yml
+    
+
+  tasks:
+
+    - name: Test SSH Connection
+      ping:
+      register: message
+
+    - name: Print debug message
+      debug:
+        msg: "{{message}} and user: {{username}}"
+
+
+
