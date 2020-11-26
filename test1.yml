@@ -1,0 +1,2 @@
+---
+ansible_vault: "{{lookup('hashi_vault','secret/data/my-secret::foo')}}"

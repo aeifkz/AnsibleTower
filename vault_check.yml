@@ -4,6 +4,7 @@
 
   vars_files:
     - test.yml
+    - test1.yml
     
 
   tasks:
@@ -14,7 +15,7 @@
 
     - name: Print debug message
       debug:
-        msg: "{{message}} and user: {{username}}"
+        msg: "ansible_vault:{{ansible_vault}} message:{{message}} and user:{{username}}"
 
 
 
