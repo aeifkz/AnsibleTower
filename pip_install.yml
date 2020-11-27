@@ -7,9 +7,6 @@
 
     - name: Test SSH Connection
       pip:
-        name: "{{ item }}"
+        name: ['pip', 'hvac','hvac[parser]']
         state: latest
-      with_items:
-        - pip
-        - hvac
-        - "hvac[parser]"
+      
