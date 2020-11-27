@@ -7,5 +7,10 @@
 
     - name: Test SSH Connection
       command : whoami
+      register: message
+      
+    - name: show result
+      debug:
+        msg: "result: {{result}}"
         
       
