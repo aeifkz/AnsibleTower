@@ -11,6 +11,6 @@
       
     - name: show result
       debug:
-        msg: "result: {{result}}"
+        msg: "result: {{message}}"
         
       
