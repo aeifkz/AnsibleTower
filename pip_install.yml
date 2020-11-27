@@ -13,6 +13,7 @@
       pip:
         name: "{{ item }}"
         state: latest
+      register: message
       with_items:        
         - hvac
         - "hvac[parser]"
