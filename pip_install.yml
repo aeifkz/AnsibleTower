@@ -1,0 +1,15 @@
+- name: Pip Install Task
+  hosts: local
+  gather_facts: False
+
+  
+  tasks:
+
+    - name: Test SSH Connection
+      pip:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - pip
+        - hvac
+        - "hvac[parser]"
