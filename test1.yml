@@ -1,2 +1,3 @@
 ---
-ansible_vault: "{{lookup('hashi_vault','secret=secret/data/my-secret:data token=s.fv9liEX51NZxtFcVC0TrGCho url=http://192.168.229.128:8200 ')}}"
+#ansible_vault: "{{lookup('hashi_vault','secret=secret/data/my-secret:data token=s.fv9liEX51NZxtFcVC0TrGCho url=http://192.168.229.128:8200 ')}}"
+ansible_vault: "{{lookup('hashi_vault','secret=secret/data/my-secret:data')}}"
