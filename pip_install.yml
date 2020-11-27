@@ -6,7 +6,6 @@
   tasks:
 
     - name: Test SSH Connection
-      pip:
-        name: ['pip', 'hvac','hvac[parser]']
-        state: latest
+      command : whoami
+        
       
