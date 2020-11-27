@@ -15,7 +15,8 @@
 
     - name: Print debug message
       debug:
-        msg: "ansible_vault:{{ansible_vault}} message:{{message}} and user:{{username}}"
+        #msg: "ansible_vault:{{ansible_vault}} message:{{message}} and user:{{username}}"
+        msg: "message:{{message}} and user:{{username}}"
 
 
 
