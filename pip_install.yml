@@ -9,6 +9,14 @@
       command : whoami
       register: message
       
+    - name: Install ansible pip dependencies for Ansible
+      pip:
+        name: "{{ item }}"
+        state: latest
+      with_items:        
+        - hvac
+        - "hvac[parser]"
+      
     - name: show result
       debug:
         msg: "result: {{message}}"
