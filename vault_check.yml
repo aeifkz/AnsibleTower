@@ -3,20 +3,14 @@
   gather_facts: False
 
   vars_files:
-    - test.yml
-    #- test1.yml
-    
+    # 讀取 Ansible Vault 檔案
+    - test.yml   
 
   tasks:
-
-    - name: Test SSH Connection
-      ping:
-      register: message
-
+  
     - name: Print debug message
-      debug:
-        #msg: "ansible_vault:{{ansible_vault}} message:{{message}} and user:{{username}}"
-        msg: "message:{{message}} and user:{{username}}"
+      debug:        
+        msg: "user:{{username}}"
 
 
 
