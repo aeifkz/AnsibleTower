@@ -1,0 +1,13 @@
+- name: Test Vault Decrypt
+  hosts: local
+  gather_facts: False
+
+  vars_files:
+    # 讀取 Ansible Vault 檔案
+    #- test.yml   
+
+  tasks:
+  
+    - name: Print debug message
+      debug:        
+        msg: "ip_list_name:{{ip_list_name}}"
