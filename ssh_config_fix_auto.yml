@@ -7,7 +7,7 @@
   tasks:
 
   - name: include IP list
-    include_vars: var.yml
+    include_vars: {{ip_list_name}}.yml
 
   - name: Add host to group soe_test
     add_host:
