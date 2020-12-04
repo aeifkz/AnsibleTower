@@ -27,10 +27,6 @@
 
   tasks:
 
-  - name: Show Debug Info
-    debug:
-      msg: "ssh_cipher_check:{{sshd_cipher_fix_content}}  {{sshd_kex_fix_content}}  {{ssh_kex_fix_content}} {{ssh_macs_fix_content}}"
-
   - name: Backup sshd_config file
     command: cp -rf /etc/ssh/sshd_config /tmp/sshd_config.bak
     tags: 
@@ -98,7 +94,6 @@
     notify: Restart Service
     tags:
       - ssh_kex_fix
-
 
 
   - name: Append SSH Kex Config
