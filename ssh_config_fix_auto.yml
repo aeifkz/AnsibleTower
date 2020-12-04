@@ -7,14 +7,13 @@
   tasks:
 
   - name: include IP list
-    include_vars: {{ip_list_name}}.yml
+    include_vars: "{{ip_list_name}}.yml"
 
   - name: Add host to group soe_test
     add_host:
       name: '{{item}}'
       groups: soe_test
-    loop: "{{app_th}}"
-
+    loop: "{{ip_list}}"
 
 
 - name: SSH Auto Fix Sample
@@ -22,7 +21,15 @@
   become: true
   gather_facts: False
 
+  vars_files:
+    # 讀取 ssh 修復資訊檔案
+    - ssh_fix_settings.yml
+
   tasks:
+
+  - name: Show Debug Info
+    debug:
+      msg: "ssh_cipher_check:{{sshd_cipher_fix_content}}  {{sshd_kex_fix_content}}  {{ssh_kex_fix_content}} {{ssh_macs_fix_content}}"
 
   - name: Backup sshd_config file
     command: cp -rf /etc/ssh/sshd_config /tmp/sshd_config.bak
@@ -44,7 +51,7 @@
     lineinfile:
       path: /etc/ssh/sshd_config
       regexp: '^[ \t]*Ciphers'
-      line: Ciphers chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
+      line: "{{sshd_cipher_fix_content}}"
       create: no
     when: current_ssh_cipher.stdout |length > 0
     notify: Restart Service
@@ -54,7 +61,7 @@
   - name: Append SSH Cipher Config
     lineinfile:
       path: /etc/ssh/sshd_config
-      line: Ciphers chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
+      line: "{{sshd_cipher_fix_content}}"
     when: current_ssh_cipher.stdout |length == 0
     notify: Restart Service
     tags:
@@ -74,7 +81,7 @@
     lineinfile:
       path: /etc/ssh/sshd_config
       regexp: '^[ \t]*KexAlgorithms'
-      line: KexAlgorithms diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org 
+      line: "{{sshd_kex_fix_content}}"
       create: no
     when: current_ssh_kex.stdout |length > 0
     notify: Restart Service
@@ -85,7 +92,7 @@
     lineinfile:
       path: /etc/ssh/sshd_config
       regexp: '^[ \t]*kexalgorithms'
-      line: " "    
+      line: "{{sshd_kex_fix_content}}"
       create: no
     when: current_ssh_kex.stdout |length > 0
     notify: Restart Service
@@ -97,7 +104,7 @@
   - name: Append SSH Kex Config
     lineinfile:
       path: /etc/ssh/sshd_config
-      line: KexAlgorithms diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org 
+      line: "{{sshd_kex_fix_content}}"
     when: current_ssh_kex.stdout |length == 0
     notify: Restart Service
     tags:
@@ -115,7 +122,7 @@
     lineinfile:
       path: /etc/ssh/ssh_config
       regexp: '^[ \t]*KexAlgorithms'
-      line: KexAlgorithms diffie-hellman-group14-sha1,,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org,gss-gex-sha1-,gss-group1-sha1-,gss-group14-sha1-
+      line: "{{ssh_kex_fix_content}}"
       create: no
     when: current_ssh_kex.stdout |length > 0
     notify: Restart Service
@@ -125,7 +132,7 @@
   - name: Append SSH Kex Config in /etc/ssh/ssh_config
     lineinfile:
       path: /etc/ssh/ssh_config
-      line: KexAlgorithms diffie-hellman-group14-sha1,,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,curve25519-sha256@libssh.org,gss-gex-sha1-,gss-group1-sha1-,gss-group14-sha1-
+      line: "{{ssh_kex_fix_content}}"
     when: current_ssh_kex.stdout |length == 0
     notify: Restart Service
     tags:
@@ -145,7 +152,7 @@
     lineinfile:
       path: /etc/ssh/sshd_config
       regexp: '^[ \t]*MACs'
-      line: MACs hmac-sha1-etm@openssh.com,umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512
+      line: "{{ssh_macs_fix_content}}"
       create: no
     when: current_ssh_macs.stdout |length > 0
     notify: Restart Service
@@ -155,7 +162,7 @@
   - name: Append SSH Kex Config
     lineinfile:
       path: /etc/ssh/sshd_config
-      line: MACs hmac-sha1-etm@openssh.com,umac-64-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512
+      line: "{{ssh_macs_fix_content}}"
     when: current_ssh_macs.stdout |length == 0
     notify: Restart Service
     tags:

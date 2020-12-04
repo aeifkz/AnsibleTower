@@ -2,15 +2,19 @@
   hosts: local
   gather_facts: False
 
+  vars:
+    app_path: 1234
+
   vars_files:
     # 讀取 Ansible Vault 檔案
-    - test.yml   
+    #- test.yml
+     - ssh_fix_settings.yml
 
   tasks:
   
     - name: Print debug message
       debug:        
-        msg: "user:{{username}}"
+        msg: "ssh_cipher_check:{{sshd_cipher_fix_content}}"
 
 
 
