@@ -23,7 +23,7 @@
 
   vars_files:
     # 讀取 ssh 修復資訊檔案
-    - ssh_fix_settings.yml
+    - fix_config/ssh_fix_settings.yml
 
   tasks:
 
