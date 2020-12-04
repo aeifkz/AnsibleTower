@@ -1,0 +1,100 @@
+---
+
+- name: SSH Create Host Sample
+  hosts: local
+  gather_facts: False
+
+  tasks:
+  - name: include IP list
+    include_vars: "{{ip_list_name}}.yml"
+
+  - name: Add host to group soe_test
+    add_host:
+      name: '{{item}}'
+      groups: soe_test
+    loop: "{{ip_list}}"
+
+
+- name: SSH Auto Fix Sample
+  hosts: soe_test
+  become: true
+  gather_facts: False
+
+  vars_files:
+    # 讀取修復資訊檔案變數
+    # TODO 修改讀取變數設定
+    #- fix_settings.yml
+
+  tasks:
+
+  # 備份設定檔案
+  # TODO 撰寫要備份的檔案
+  - name: Backup sshd_config file
+    command: cp -rf "" /tmp/
+
+
+  # 修復設定檔案
+  #-------------------------------------------------------------------------
+
+  # 抓取設定檔案特定資料
+  # TODO 訂出要判斷設定檔的規則,以及要判斷的檔案路徑
+  - name: Get Current Setting
+    command: grep -w '^...' filename
+    register: current_config
+    ignore_errors: True
+
+  # 修復設定檔資訊(假如已經設定過)
+  # TODO 訂出判斷檔案的規則,以及檔案路徑
+  - name: Fix Config Exists Config
+    lineinfile:
+      path: ...
+      regexp: '^...'
+      line: "fix_content"
+      create: no
+    when: current_config.stdout |length > 0
+    notify: Restart Service
+
+  # 修復設定檔案資訊(假如沒有設定過)
+  # TODO 訂出新增的檔案路徑
+  - name: Append Config
+    lineinfile:
+      path: ...
+      line: "fix_content"
+    when: current_config.stdout |length == 0
+    notify: Restart Service
+
+
+  # 判斷設定後服務是否正常
+  # TODO 需加入判斷服務是否正常的命令
+  - name: Check Config Correct
+    command: do_something
+    ignore_errors: True
+    changed_when: True
+    register: command_result
+                        
+  # 如果服務壞掉需要回復服務
+  # TODO 須設定回復的檔案名稱
+  - name: Restore Config
+    command: cp -rf ... 
+    when: command_result.rc != 0
+    notify: 
+      - Restart Service
+      - Throw Fail
+
+
+  handlers:
+
+  # 進行服務重啟
+  # TODO 需修改重啟服務名稱
+  - name: Restart Service
+    systemd:
+      name: ......
+      state: restarted
+      daemon_reload: yes
+
+  - name: Throw Fail
+    fail:
+      msg: "Fix Config Fail"
+    when: True
+
+  
