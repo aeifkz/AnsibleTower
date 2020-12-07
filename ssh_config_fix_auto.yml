@@ -54,11 +54,23 @@
     tags:
       - ssh_cipher_fix
 
+  - name: Append SSH Cipher Config Before Match
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      line: "{{sshd_cipher_fix_content}}"
+      insertbefore: '^[ \t]*Match Group'
+      firstmatch: yes
+    when: current_ssh_cipher.stdout |length == 0
+    register: changes_before_match
+    notify: Restart Service
+    tags:
+      - ssh_cipher_fix
+
   - name: Append SSH Cipher Config
     lineinfile:
       path: /etc/ssh/sshd_config
       line: "{{sshd_cipher_fix_content}}"
-    when: current_ssh_cipher.stdout |length == 0
+    when: current_ssh_cipher.stdout |length == 0 and changes_before_match['changed'] == True
     notify: Restart Service
     tags:
       - ssh_cipher_fix
@@ -67,24 +79,13 @@
   # SSH KexAlgorithm
   #-------------------------------------------------------------------------
   - name: Get SSH Kex Current Setting
-    command: grep -w '^[ \t]*\(KexAlgorithms\|kexalgorithms\)' /etc/ssh/sshd_config
+    command: grep -w '^[ \t]*kexalgorithms' /etc/ssh/sshd_config
     register: current_ssh_kex
     ignore_errors: True
     tags:
       - ssh_kex_fix
 
   - name: Fix SSH Kex Exists Config
-    lineinfile:
-      path: /etc/ssh/sshd_config
-      regexp: '^[ \t]*KexAlgorithms'
-      line: "{{sshd_kex_fix_content}}"
-      create: no
-    when: current_ssh_kex.stdout |length > 0
-    notify: Restart Service
-    tags:
-      - ssh_kex_fix
-
-  - name: Fix SSH Kex Exists Config1
     lineinfile:
       path: /etc/ssh/sshd_config
       regexp: '^[ \t]*kexalgorithms'
@@ -96,11 +97,24 @@
       - ssh_kex_fix
 
 
+  - name: Append SSH Kex Config Before Match
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      line: "{{sshd_kex_fix_content}}"
+      insertbefore: '^[ \t]*Match Group'
+      firstmatch: yes
+    when: current_ssh_kex.stdout |length == 0
+    register: changes_before_match
+    notify: Restart Service
+    tags:
+      - ssh_kex_fix
+
+
   - name: Append SSH Kex Config
     lineinfile:
       path: /etc/ssh/sshd_config
       line: "{{sshd_kex_fix_content}}"
-    when: current_ssh_kex.stdout |length == 0
+    when: current_ssh_kex.stdout |length == 0 and changes_before_match['changed'] == True
     notify: Restart Service
     tags:
       - ssh_kex_fix
@@ -154,11 +168,23 @@
     tags:
       - ssh_mac_fix
 
+  - name: Append SSH MACs Config Before Match
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      line: "{{ssh_macs_fix_content}}"
+      insertbefore: '^[ \t]*Match Group'
+      firstmatch: yes
+    when: current_ssh_macs.stdout |length == 0
+    register: changes_before_match
+    notify: Restart Service
+    tags:
+      - ssh_macs_fix
+
   - name: Append SSH Kex Config
     lineinfile:
       path: /etc/ssh/sshd_config
       line: "{{ssh_macs_fix_content}}"
-    when: current_ssh_macs.stdout |length == 0
+    when: current_ssh_macs.stdout |length == 0 and changes_before_match['changed'] == True
     notify: Restart Service
     tags:
       - ssh_mac_fix
