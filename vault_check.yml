@@ -8,13 +8,13 @@
   vars_files:
     # 讀取 Ansible Vault 檔案
      - test.yml
-     - ssh_fix_settings.yml
+     #- ssh_fix_settings.yml
 
   tasks:
   
     - name: Print debug message
       debug:        
-        msg: "ssh_cipher_check:{{sshd_cipher_fix_content}}"
+        msg: "ssh_cipher_check:"
 
 
 
