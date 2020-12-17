@@ -7,7 +7,7 @@
 
   vars_files:
     # 讀取 Ansible Vault 檔案
-    #- test.yml
+     - test.yml
      - ssh_fix_settings.yml
 
   tasks:
